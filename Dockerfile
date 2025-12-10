@@ -24,11 +24,10 @@ RUN poetry install --no-root
 # Copy source code
 COPY . .
 
+# Collect static files (dummy env vars for build only)
+RUN POSTGRES_DB=x POSTGRES_USER=x POSTGRES_PASSWORD=x DATABASE_HOST=x DATABASE_PORT=5432 \
+    python manage.py collectstatic --noinput
+
 EXPOSE 8000
 
-# If DJANGO_DEBUG=True → runserver, else gunicorn
-CMD if [ "$DJANGO_DEBUG" = "True" ]; then \
-        python manage.py runserver 0.0.0.0:8000; \
-    else \
-        gunicorn app.wsgi:application --bind 0.0.0.0:${PORT:-8000}; \
-    fi
+CMD ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000"]

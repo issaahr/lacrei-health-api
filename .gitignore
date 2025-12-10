@@ -150,6 +150,9 @@ venv.bak/
 /env/*.env
 !/env/*.env.example
 
+# Static files (generated)
+/staticfiles/
+
 # Spyder project settings
 .spyderproject
 .spyproject
