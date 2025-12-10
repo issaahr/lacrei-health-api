@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "lacrei-health-api"
+version = "1.0.0"
+description = "API de saúde Lacrei"
+authors = ["Dev"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.0"
+djangorestframework = "^3.14"
+psycopg2-binary = "^2.9"
+python-decouple = "^3.8"
+drf-yasg = "^1.21"
+django-cors-headers = "^4.3"
+gunicorn = "^21.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+pytest-django = "^4.7"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "app.settings"
+python_files = ["test_*.py"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
