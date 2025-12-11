@@ -19,9 +19,9 @@ API REST para gerenciamento de profissionais de saúde e consultas médicas.
 
 ### Por que Render?
 
-Para este desafio, optei pelo Render porque permite montar staging e produção rapidamente, sem custo e sem a complexidade operacional da AWS. A arquitetura é portável e, caso a Lacrei migre para AWS no futuro, o pipeline continua o mesmo (Docker + CI/CD).
+Para este desafio, optei pelo Render porque permite montar staging e produção rapidamente, sem custo e sem a complexidade operacional da AWS. A arquitetura é portável e, caso a API migre para AWS no futuro, o pipeline continua o mesmo (Docker + CI/CD).
 
-### Por que API Key (não JWT)?
+### Por que API Key (e não JWT ou outra opção)?
 
 - **Simplicidade**: Requisito do desafio é "autenticação básica"
 - **Stateless**: Não requer banco para sessões
@@ -34,13 +34,6 @@ Para este desafio, optei pelo Render porque permite montar staging e produção 
 - **Isolamento**: Cada execução começa limpa
 - **CI/CD**: Não requer PostgreSQL no GitHub Actions
 - **Django ORM**: Abstrai diferenças entre bancos
-
-### Por que Ruff (não Black/Flake8)?
-
-- **Performance**: 10-100x mais rápido que alternativas
-- **All-in-one**: Linter + formatter em uma ferramenta
-- **Compatível**: Suporta regras do Flake8, isort, pyupgrade
-- **Moderno**: Escrito em Rust, mantido ativamente
 
 ## Rodar Local
 
