@@ -1,8 +1,8 @@
-from django.urls import path, include
 from django.http import JsonResponse
-from rest_framework.permissions import AllowAny
-from drf_yasg.views import get_schema_view
+from django.urls import include, path
 from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework.permissions import AllowAny
 
 API_INFO = openapi.Info(
     title="Lacrei Health API",

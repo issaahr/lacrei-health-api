@@ -18,6 +18,15 @@ whitenoise = "^6.6"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
 pytest-django = "^4.7"
+ruff = "^0.8"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "app.settings"

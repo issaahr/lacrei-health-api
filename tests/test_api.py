@@ -1,12 +1,14 @@
-import os
 import json
-from django.test import TestCase
-from rest_framework.test import APITestCase, APIClient
-from rest_framework import status
-from django.utils import timezone
+import os
 from datetime import timedelta
-from professionals.models import Professional
+
+from django.test import TestCase
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.test import APIClient, APITestCase
+
 from appointments.models import Appointment
+from professionals.models import Professional
 
 
 class ProfessionalCRUDTest(APITestCase):
@@ -217,8 +219,9 @@ class APIKeyAuthenticationTest(TestCase):
         """Testa erro ao acessar sem API Key quando configurada."""
         os.environ['API_KEY'] = 'test-api-key'
 
-        from app.middleware import APIKeyMiddleware
         from django.test import RequestFactory
+
+        from app.middleware import APIKeyMiddleware
 
         factory = RequestFactory()
         request = factory.get('/api/professionals/')
@@ -233,9 +236,10 @@ class APIKeyAuthenticationTest(TestCase):
         """Testa acesso com API Key válida."""
         os.environ['API_KEY'] = 'test-api-key'
 
-        from app.middleware import APIKeyMiddleware
-        from django.test import RequestFactory
         from django.http import HttpResponse
+        from django.test import RequestFactory
+
+        from app.middleware import APIKeyMiddleware
 
         factory = RequestFactory()
         request = factory.get('/api/professionals/', HTTP_X_API_KEY='test-api-key')
@@ -252,8 +256,9 @@ class APIKeyAuthenticationTest(TestCase):
         """Testa erro ao acessar com API Key inválida."""
         os.environ['API_KEY'] = 'test-api-key'
 
-        from app.middleware import APIKeyMiddleware
         from django.test import RequestFactory
+
+        from app.middleware import APIKeyMiddleware
 
         factory = RequestFactory()
         request = factory.get('/api/professionals/', HTTP_X_API_KEY='chave-errada')
@@ -267,9 +272,10 @@ class APIKeyAuthenticationTest(TestCase):
         """Testa que paths isentos não precisam de API Key."""
         os.environ['API_KEY'] = 'test-api-key'
 
-        from app.middleware import APIKeyMiddleware
-        from django.test import RequestFactory
         from django.http import HttpResponse
+        from django.test import RequestFactory
+
+        from app.middleware import APIKeyMiddleware
 
         factory = RequestFactory()
 
