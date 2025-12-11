@@ -3,6 +3,7 @@ name = "lacrei-health-api"
 version = "1.0.0"
 description = "API de saúde Lacrei"
 authors = ["Isabeli Romano"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
