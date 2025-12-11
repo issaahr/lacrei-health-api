@@ -1,0 +1,59 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [production, stage]
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/lacrei-health-api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Set environment
+        id: env
+        run: |
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          if [ "$BRANCH" = "production" ]; then
+            echo "url=${{ secrets.PRODUCTION_URL }}" >> $GITHUB_OUTPUT
+            echo "hook=${{ secrets.RENDER_DEPLOY_HOOK_PROD }}" >> $GITHUB_OUTPUT
+          else
+            echo "url=${{ secrets.STAGING_URL }}" >> $GITHUB_OUTPUT
+            echo "hook=${{ secrets.RENDER_DEPLOY_HOOK_STAGE }}" >> $GITHUB_OUTPUT
+          fi
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Deploy
+        run: |
+          echo "🚀 Deploying ${{ steps.env.outputs.branch }}..."
+          curl -X POST "${{ steps.env.outputs.hook }}"
+
+      - name: Health check
+        id: health
+        continue-on-error: true
+        run: |
+          echo "⏳ Waiting for deploy..."
+          sleep 60
+          echo "🏥 Health check..."
+          for i in 1 2 3 4 5; do
+            curl -sf "${{ steps.env.outputs.url }}/health/" && echo "✅ OK" && exit 0
+            echo "Attempt $i failed..."
+            sleep 10
+          done
+          exit 1
+
+      - name: Rollback on failure
+        if: failure() && steps.env.outputs.branch == 'production'
+        run: |
+          echo "🔄 Rollback..."
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          docker pull ${{ env.DOCKER_IMAGE }}:production-prev
+          docker tag ${{ env.DOCKER_IMAGE }}:production-prev ${{ env.DOCKER_IMAGE }}:production
+          docker push ${{ env.DOCKER_IMAGE }}:production
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_PROD }}"
+          echo "❌ Rollback executado"
+          exit 1
