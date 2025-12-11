@@ -30,4 +30,7 @@ RUN POSTGRES_DB=x POSTGRES_USER=x POSTGRES_PASSWORD=x DATABASE_HOST=x DATABASE_P
 
 EXPOSE 8000
 
-CMD ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000"]
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+CMD ["./entrypoint.sh"]
