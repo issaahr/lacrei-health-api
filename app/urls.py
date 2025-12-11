@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 
 API_INFO = openapi.Info(
     title="Lacrei Health API",
-    default_version='v1',
+    default_version="v1",
     description="API para gerenciamento de profissionais de saúde e consultas médicas.",
     contact=openapi.Contact(email="contato@teste.com.br"),
 )
@@ -14,7 +14,7 @@ API_INFO = openapi.Info(
 
 def health_check(request):
     """Endpoint para verificação do status da API."""
-    return JsonResponse({'status': 'ok'})
+    return JsonResponse({"status": "ok"})
 
 
 schema_view = get_schema_view(
@@ -25,10 +25,10 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('health/', health_check),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0)),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0)),
-    path('schema/', schema_view.without_ui(cache_timeout=0)),
-    path('api/', include('professionals.urls')),
-    path('api/', include('appointments.urls')),
+    path("health/", health_check),
+    path("swagger/", schema_view.with_ui("swagger", cache_timeout=0)),
+    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0)),
+    path("schema/", schema_view.without_ui(cache_timeout=0)),
+    path("api/", include("professionals.urls")),
+    path("api/", include("appointments.urls")),
 ]

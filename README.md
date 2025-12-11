@@ -8,9 +8,39 @@ API REST para gerenciamento de profissionais de saúde e consultas médicas.
 - Django 5.0 + Django REST Framework
 - PostgreSQL
 - Docker
+- Poetry (gerenciamento de dependências)
 - Gunicorn + Whitenoise
 - Ruff (linting)
 - GitHub Actions (CI/CD)
+- Render (deploy staging + produção)
+- drf-yasg (documentação Swagger/OpenAPI)
+
+## Justificativas Técnicas
+
+### Por que Render?
+
+Para este desafio, optei pelo Render porque permite montar staging e produção rapidamente, sem custo e sem a complexidade operacional da AWS. A arquitetura é portável e, caso a Lacrei migre para AWS no futuro, o pipeline continua o mesmo (Docker + CI/CD).
+
+### Por que API Key (não JWT)?
+
+- **Simplicidade**: Requisito do desafio é "autenticação básica"
+- **Stateless**: Não requer banco para sessões
+- **Fácil integração**: Header único em todas as requisições
+- **Escalável**: Pode evoluir para JWT posteriormente sem quebrar contratos
+
+### Por que SQLite nos testes?
+
+- **Velocidade**: Testes rodam em memória (`:memory:`)
+- **Isolamento**: Cada execução começa limpa
+- **CI/CD**: Não requer PostgreSQL no GitHub Actions
+- **Django ORM**: Abstrai diferenças entre bancos
+
+### Por que Ruff (não Black/Flake8)?
+
+- **Performance**: 10-100x mais rápido que alternativas
+- **All-in-one**: Linter + formatter em uma ferramenta
+- **Compatível**: Suporta regras do Flake8, isort, pyupgrade
+- **Moderno**: Escrito em Rust, mantido ativamente
 
 ## Rodar Local
 
@@ -253,8 +283,106 @@ Endpoint `/health/` retorna:
 {"status": "ok"}
 ```
 
-Pode ser integrado com:
+## Proposta de Integração com Assas (Split de Pagamento)
 
-- UptimeRobot (gratuito)
-- Render Health Alerts
-- Pingdom
+### Arquitetura Proposta
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│    Frontend     │───▶│   Health API    │────▶│    Assas API    │
+│   (Paciente)    │     │ (Este projeto)  │     │  (Pagamentos)   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                                │
+                                ▼
+                        ┌─────────────────┐
+                        │     Webhook     │
+                        │  (Confirmação)  │
+                        └─────────────────┘
+```
+
+### Fluxo de Pagamento com Split
+
+```
+1. Paciente agenda consulta
+   POST /api/appointments/ { professional_id, date }
+
+2. API cria cobrança no Assas com split
+   POST https://api.asaas.com/v3/payments
+   {
+     "customer": "cus_xxx",
+     "value": 150.00,
+     "split": [
+       { "walletId": "lacrei_wallet", "percentualValue": 20 },
+       { "walletId": "professional_wallet", "percentualValue": 80 }
+     ]
+   }
+
+3. Paciente paga (PIX, cartão, boleto)
+
+4. Assas envia webhook de confirmação
+   POST /api/webhooks/asaas/
+   { "event": "PAYMENT_CONFIRMED", "payment": {...} }
+
+5. API atualiza status da consulta
+   Appointment.status = "confirmed"
+```
+
+### Modelo de Dados (Extensão Proposta)
+
+```python
+# professionals/models.py
+class Professional(models.Model):
+    # ... campos existentes ...
+    asaas_wallet_id = models.CharField(max_length=50, null=True)
+    split_percentage = models.DecimalField(default=80.0)  # 80% para profissional
+
+# appointments/models.py
+class Appointment(models.Model):
+    # ... campos existentes ...
+    status = models.CharField(choices=[
+        ('pending', 'Pendente'),
+        ('paid', 'Pago'),
+        ('confirmed', 'Confirmado'),
+        ('cancelled', 'Cancelado'),
+    ], default='pending')
+    asaas_payment_id = models.CharField(max_length=50, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+```
+
+### Endpoints Adicionais (Proposta)
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/api/payments/` | Criar cobrança para consulta |
+| GET | `/api/payments/{id}/` | Status do pagamento |
+| POST | `/api/webhooks/asaas/` | Receber confirmações |
+
+### Configuração de Ambiente
+
+```env
+# Adicionar ao api.env
+ASAAS_API_KEY=sua-api-key-asaas
+ASAAS_WALLET_ID=carteira-lacrei
+ASAAS_ENVIRONMENT=sandbox  # ou production
+LACREI_SPLIT_PERCENTAGE=20  # % que fica com Lacrei
+```
+
+### Segurança do Webhook
+
+```python
+# Validar token do webhook (conforme documentação Asaas)
+from django.http import HttpResponseForbidden
+
+def validate_asaas_webhook(request):
+    token = request.headers.get('asaas-access-token')
+    if token != settings.ASAAS_WEBHOOK_SECRET:
+        return HttpResponseForbidden()
+    return None  # Token válido
+```
+
+### Referências
+
+- [Documentação Assas - Split](https://docs.asaas.com/reference/criar-nova-cobranca)
+- [Webhooks Assas](https://docs.asaas.com/reference/webhooks)
+
+> **Obs**: Essa integração não foi implementada, apenas sugerida conforme o desafio. A arquitetura é baseada na documentação oficial do Assas e pode ser evoluída para o fluxo real caso necessário.

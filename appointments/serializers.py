@@ -9,8 +9,8 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'date', 'professional']
-        read_only_fields = ['id']
+        fields = ["id", "date", "professional"]
+        read_only_fields = ["id"]
 
     def validate_date(self, value):
         """Valida que a data não está no passado."""
