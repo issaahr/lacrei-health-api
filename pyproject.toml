@@ -30,7 +30,7 @@ select = ["E", "F", "I"]
 ignore = ["E501"]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "app.settings"
+DJANGO_SETTINGS_MODULE = "app.settings_test"
 python_files = ["test_*.py"]
 
 [build-system]
