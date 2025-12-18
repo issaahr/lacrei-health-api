@@ -34,7 +34,7 @@ jobs:
           ALLOWED_HOSTS: "localhost"
         run: |
           export PATH="$HOME/.local/bin:$PATH"
-          poetry run pytest tests/ -v
+          poetry run pytest -v
 
   build:
     runs-on: ubuntu-latest

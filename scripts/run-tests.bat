@@ -1,3 +1,3 @@
 @echo off
 call .venv\Scripts\activate.bat
-pytest tests/ -v --tb=short
+pytest -v --tb=short
